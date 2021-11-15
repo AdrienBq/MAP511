@@ -51,6 +51,16 @@ def minus(filename):
 
 #minus('test.txt')
 
+def process(filename):
+    lines = readLines(filename)
+    new_file = open('process_file.txt', 'w')
+    for line in lines:
+        line = processString(line)
+        line = line.lower()
+        new_file.write(line+'\n')
+        
+    new_file.close()
+
 def split_test_train_valid(filename, n_train = 10000, n_test=10000, length = 50, n_valid = 10000 ):
     file  = open(filename, 'r')
     lines = file.readlines()
@@ -80,6 +90,8 @@ def split_test_train_valid(filename, n_train = 10000, n_test=10000, length = 50,
     test_file.close()
 
 
-fusion('Tatoeba.en-fr.fr.txt', 'Tatoeba.en-fr.en.txt')
-minus('fusion_file.txt')
-split_test_train_valid('minus_file.txt')
+#fusion('Tatoeba.en-fr.fr.txt', 'Tatoeba.en-fr.en.txt')
+#minus('fusion_file.txt')
+#split_test_train_valid('minus_file.txt')
+
+#process('Tatoeba.en-fr.en.txt')
