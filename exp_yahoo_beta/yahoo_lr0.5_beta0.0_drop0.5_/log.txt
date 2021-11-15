@@ -1,5 +1,0 @@
-Namespace(batch_size=32, beta=0.0, cuda=False, dataset='yahoo', dec_dropout_in=0.5, dec_dropout_out=0.5, dec_nh=1024, dec_type='lstm', decoding_strategy='greedy', enc_nh=1024, enc_type='lstm', epochs=100, eval=False, exp_dir='exp_yahoo_beta/yahoo_lr0.5_beta0.0_drop0.5_', fix_var=-1, freeze_epoch=-1, iw_nsamples=500, iw_train_ns=1, iw_train_nsamples=-1, kl_start=1.0, label=False, load_best_epoch=15, load_path='', lr=0.5, momentum=0, ni=512, nsamples=1, nz=32, opt='sgd', reconstruct_from='', reconstruct_to='decoding.txt', reset_dec=False, save_ckpt=0, save_latent=0, save_path='exp_yahoo_beta/yahoo_lr0.5_beta0.0_drop0.5_/model.pt', seed=783435, test_data='datasets/yahoo_data/yahoo.test.txt', test_nepoch=5, train_data='datasets/yahoo_data/yahoo.train.txt', val_data='datasets/yahoo_data/yahoo.valid.txt', warm_up=10)
-Train data: 100000 samples
-finish reading datasets, vocab size is 20001
-dropped sentences: 0
-epoch: 0, iter: 0, avg_loss: 861.6051, kl: 0.0000, recon: 861.6051,time elapsed 12.69s, kl_weight 0.0000
