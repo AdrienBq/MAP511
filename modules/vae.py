@@ -98,6 +98,29 @@ class VAE(nn.Module):
 
         return reconstruct_err + kl_weight * KL, reconstruct_err, KL
 
+    def loss_multi(self, x1, x2, kl_weight, nsamples=1):
+        """
+        Args:
+            x: if the data is constant-length, x is the data tensor with
+                shape (batch, *). Otherwise x is a tuple that contains
+                the data tensor and length list
+
+        Returns: Tensor1, Tensor2, Tensor3
+            Tensor1: total loss [batch]
+            Tensor2: reconstruction loss shape [batch]
+            Tensor3: KL loss shape [batch]
+        """
+
+        z1, KL1 = self.encode(x1, nsamples)
+        z2, KL2 = self.encode(x2, nsamples)
+
+        # (batch)
+        reconstruct_err1 = self.decoder.reconstruct_error(x1, z1).mean(dim=1) 
+        reconstruct_err2 = self.decoder.reconstruct_error(x2, z2).mean(dim=1)
+
+
+        return (reconstruct_err1 + reconstruct_err2)/2 + kl_weight * (KL1 + KL2)/2 + math.norm(z1-z2)**2, reconstruct_err1, reconstruct_err2, KL1, KL2
+
 
     def loss_iw(self, x, kl_weight, nsamples=50, ns=10):
         """
@@ -165,6 +188,86 @@ class VAE(nn.Module):
         nll_iw = log_sum_exp(torch.cat(tmp, dim=-1), dim=-1) - math.log(nsamples)
 
         return nll_iw, reconstruct_err_sum / nsamples, KL
+
+
+    def loss_iw_multi(self, x1, x2, kl_weight, nsamples=50, ns=10):
+        """
+        Args:
+            x: if the data is constant-length, x is the data tensor with
+                shape (batch, *). Otherwise x is a tuple that contains
+                the data tensor and length list
+
+        Returns: Tensor1, Tensor2, Tensor3
+            Tensor1: total loss [batch]
+            Tensor2: reconstruction loss shape [batch]
+            Tensor3: KL loss shape [batch]
+        """
+
+        mu1, logvar1 = self.encoder.forward(x1)
+        mu2, logvar2 = self.encoder.forward(x2)
+
+        ##################
+        # compute KL
+        ##################
+        KL1 = 0.5 * (mu1.pow(2) + logvar1.exp() - logvar1 - 1).sum(dim=1)
+        KL2 = 0.5 * (mu2.pow(2) + logvar2.exp() - logvar2 - 1).sum(dim=1)
+
+        tmp = []
+        reconstruct_err_sum1 = 0
+        reconstruct_err_sum2 = 0
+
+        #import pdb
+
+        for _ in range(int(nsamples / ns)):
+
+            # (batch, nsamples, nz)
+            z1 = self.encoder.reparameterize(mu1, logvar1, ns)
+            z2 = self.encoder.reparameterize(mu2, logvar2, ns)
+
+            ##################
+            # compute qzx
+            ##################
+            nz1 = z1.size(2)
+            nz2 = z2.size(2)
+
+            # (batch_size, 1, nz)
+            _mu1, _logvar1 = mu1.unsqueeze(1), logvar1.unsqueeze(1)
+            _mu2, _logvar2 = mu2.unsqueeze(1), logvar2.unsqueeze(1)
+            var1 = _logvar1.exp()
+            var2 = _logvar2.exp()
+
+            # (batch_size, nsamples, nz)
+            dev1 = z1 - _mu1
+            dev2 = z2 - _mu2
+
+            # (batch_size, nsamples)
+            log_qzx1 = -0.5 * ((dev1 ** 2) / var1).sum(dim=-1) - \
+                0.5 * (nz1 * math.log(2 * math.pi) + _logvar1.sum(-1))
+            log_qzx2 = -0.5 * ((dev2 ** 2) / var2).sum(dim=-1) - \
+                0.5 * (nz2 * math.log(2 * math.pi) + _logvar2.sum(-1))
+
+            ##################
+            # compute qzx
+            ##################
+            log_pz1 = (-0.5 * math.log(2*math.pi) - z1**2 / 2).sum(dim=-1)
+            log_pz2 = (-0.5 * math.log(2*math.pi) - z2**2 / 2).sum(dim=-1)
+
+            ##################
+            # compute reconstruction loss
+            ##################
+            # (batch)
+            reconstruct_err1 = self.decoder.reconstruct_error(x1, z1)
+            reconstruct_err2 = self.decoder.reconstruct_error(x2, z2)
+            reconstruct_err_sum1 += reconstruct_err1.cpu().detach().sum(dim=1)
+            reconstruct_err_sum2 += reconstruct_err2.cpu().detach().sum(dim=1)
+
+            #pdb.set_trace()
+
+            tmp.append((reconstruct_err1 + reconstruct_err2)/2 + kl_weight * ((log_qzx1 - log_pz1) + (log_qzx2 - log_pz2))/2)
+
+        nll_iw = log_sum_exp(torch.cat(tmp, dim=-1), dim=-1) - math.log(nsamples)
+
+        return nll_iw + math.norm(z1-z2)**2, reconstruct_err_sum1 / nsamples, reconstruct_err_sum1 / nsamples, KL1, KL2
 
 
     def nll_iw(self, x, nsamples, ns=100):
