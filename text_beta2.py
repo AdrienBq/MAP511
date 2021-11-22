@@ -331,19 +331,27 @@ def main(args):
     # At any point you can hit Ctrl + C to break out of training early.
     try:
         for epoch in range(args.epochs):
-            report_kl_loss_fr = report_rec_loss_fr = report_loss = 0
+            report_kl_loss_fr = report_rec_loss_fr = report_loss_fr = report_loss_en = 0
             report_kl_loss_en = report_rec_loss_en = 0
-            report_num_words = report_num_sents = 0
+            report_num_words_fr = report_num_words_en= report_num_sents_fr = report_num_sents_en=0
 
             for i in np.random.permutation(len(train_data_batch_fr)):
 
                 batch_data_fr = train_data_batch_fr[i]
                 batch_data_en = train_data_batch_en[i]
-                batch_size, sent_len = batch_data_fr.size()
+                
+                
+                batch_size_fr, sent_len_fr = batch_data_fr.size()
+                batch_size_en, sent_len_en = batch_data_en.size()
+
+                if (batch_size_fr!=batch_size_en):
+                    break
 
                 # not predict start symbol
-                report_num_words += (sent_len - 1) * batch_size
-                report_num_sents += batch_size
+                report_num_words_fr += (sent_len_fr - 1) * batch_size_fr
+                report_num_sents_fr += batch_size_fr
+                report_num_words_en += (sent_len_en - 1) * batch_size_en
+                report_num_sents_en += batch_size_en
                 
                 kl_weight = args.beta
 
@@ -369,22 +377,24 @@ def main(args):
 
                 report_rec_loss_fr += loss_rc_fr.item()
                 report_kl_loss_fr += loss_kl_fr.item()
-                report_loss += loss.item() * batch_size
+                report_loss_fr += loss.item() * batch_size_fr
+                report_loss_en += loss.item() * batch_size_en
 
                 if iter_ % log_niter == 0:
                     #train_loss = (report_rec_loss  + report_kl_loss) / report_num_sents
-                    train_loss = report_loss / report_num_sents
-                    logging('epoch: %d, iter: %d, avg_loss: %.4f, fr kl: %.4f, fr recon: %.4f, en kl: %.4f, en recon: %.4f,' \
-                           'time elapsed %.2fs, kl_weight %.4f' %
-                           (epoch, iter_, train_loss, report_kl_loss_fr / report_num_sents,
-                           report_rec_loss_fr / report_num_sents, report_kl_loss_en / report_num_sents,
-                           report_rec_loss_en / report_num_sents, time.time() - start, kl_weight))
+                    train_loss_fr = report_loss_fr / report_num_sents_fr
+                    train_loss_en = report_loss_en / report_num_sents_en
+
+                    logging('epoch: %d, iter: %d, avg_loss_fr: %.4f,avg_loss_en: %.4f, kl_fr: %.4f,kl_en: %.4f, recon_fr: %.4f,recon_en: %.4f' \
+                           'time %.2fs, kl_weight %.4f' %
+                           (epoch, iter_, train_loss_fr, train_loss_en, report_kl_loss_fr / report_num_sents_fr,report_kl_loss_en / report_num_sents_en,
+                           report_rec_loss_fr / report_num_sents_fr, report_rec_loss_en / report_num_sents_en, time.time() - start, kl_weight))
 
                     #sys.stdout.flush()
 
                     report_rec_loss_fr = report_kl_loss_fr = report_loss_fr = 0
                     report_rec_loss_en = report_kl_loss_en = report_loss_en = 0
-                    report_num_words = report_num_sents = 0
+                    report_num_words_fr = report_num_words_en= report_num_sents_fr = report_num_sents_en=0
 
                 iter_ += 1
 
