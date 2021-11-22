@@ -119,7 +119,7 @@ class VAE(nn.Module):
         reconstruct_err2 = self.decoder.reconstruct_error(x2, z2).mean(dim=1)
 
 
-        return (reconstruct_err1 + reconstruct_err2)/2 + kl_weight * (KL1 + KL2)/2 + math.norm(z1-z2)**2, reconstruct_err1, reconstruct_err2, KL1, KL2
+        return (reconstruct_err1 + reconstruct_err2)/2 + kl_weight * (KL1 + KL2)/2 + torch.norm(z1-z2).item()**2, reconstruct_err1, reconstruct_err2, KL1, KL2
 
 
     def loss_iw(self, x, kl_weight, nsamples=50, ns=10):
