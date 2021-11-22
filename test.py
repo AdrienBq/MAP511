@@ -1,6 +1,7 @@
 import random
 import unicodedata
 import string
+import numpy as np
 
 all_letters = string.ascii_letters + " .,;'-?!_"
 
@@ -89,9 +90,77 @@ def split_test_train_valid(filename, n_train = 10000, n_test=10000, length = 50,
         idx+=1
     test_file.close()
 
+def split_test_train_valid2(filename1, filename2, n_train = 10000, n_test=10000, length = 50, n_valid = 10000 ):
+    file  = open(filename1, 'r')
+    lines1 = file.readlines()
+    file.close()
+
+    file  = open(filename2, 'r')
+    lines2 = file.readlines()
+    file.close()
+    
+    lst_idx = [i for i in range(len(lines1))]
+    
+    random.shuffle(lst_idx)
+    
+    train_file = open('tatoeba.train.txt', 'w')
+    train_file1 = open('tatoeba.train.fr.txt', 'w')
+    idx=0
+    while idx<n_train:
+        
+        train_file1.write(lines1[lst_idx[idx]])
+        train_file.write(lines1[lst_idx[idx]])
+        idx += 1
+    train_file1.close()
+
+    train_file2 = open('tatoeba.train.en.txt', 'w')
+    idx=0
+    while idx<n_train:
+        
+        train_file2.write(lines2[lst_idx[idx]])
+        train_file.write(lines2[lst_idx[idx]])
+        idx += 1
+    train_file2.close()
+    train_file.close()
+
+    idx = n_valid
+    valid_file1 = open('tatoeba.valid.fr.txt', 'w')
+    while idx<n_train + n_valid:
+        if len(lines1[lst_idx[idx]])>=length:
+            valid_file1.write(lines1[lst_idx[idx]])
+        idx += 1
+    valid_file1.close()
+
+    idx = n_valid
+    valid_file2 = open('tatoeba.valid.en.txt', 'w')
+    while idx<n_train + n_valid:
+        if len(lines2[lst_idx[idx]])>=length:
+            valid_file2.write(lines2[lst_idx[idx]])
+        idx += 1
+    valid_file2.close()
+
+    idx = n_test
+    test_file1 = open('tatoeba.test.fr.txt', 'w')
+    while idx<n_train + n_valid + n_test:
+        if len(lines1[lst_idx[idx]])>=length:
+            test_file1.write(lines1[lst_idx[idx]])
+        idx += 1
+    test_file1.close()
+
+    idx = n_test
+    test_file2 = open('tatoeba.test.en.txt', 'w')
+    while idx<n_train + n_valid +n_test:
+        if len(lines2[lst_idx[idx]])>=length:
+            test_file2.write(lines2[lst_idx[idx]])
+        idx += 1
+    test_file2.close()
+
+
 
 #fusion('Tatoeba.en-fr.fr.txt', 'Tatoeba.en-fr.en.txt')
 #minus('fusion_file.txt')
 #split_test_train_valid('minus_file.txt')
 
 #process('Tatoeba.en-fr.en.txt')
+
+split_test_train_valid2('Tatoeba.fr.txt', 'Tatoeba.en.txt', n_train = 10000, n_test=10000, length = 50, n_valid = 10000 )
