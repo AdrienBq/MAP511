@@ -122,18 +122,21 @@ def init_config():
 
 def test(model, test_data_batch_fr, test_data_batch_en, mode, args, verbose=True):
 
-    if len(test_data_batch_fr)!=len(test_data_batch_en):
-        raise ValueError("the two texts don't have the same number of line")
     global logging
 
     report_kl_loss_fr = report_rec_loss_fr = report_loss_fr = 0
     report_kl_loss_en = report_rec_loss_en = report_loss_en = 0
     report_num_words_fr = report_num_sents_fr =report_num_words_en = report_num_sents_en = 0
-    for i in np.random.permutation(len(test_data_batch_fr)):
+
+    for i in np.random.permutation(min(len(test_data_batch_fr), len(test_data_batch_en))):
         batch_data_fr = test_data_batch_fr[i]
         batch_data_en = test_data_batch_en[i]
         batch_size_fr, sent_len_fr = batch_data_fr.size()
         batch_size_en, sent_len_en = batch_data_en.size()
+
+        if (batch_size_fr!=batch_size_en):
+                    #print("batch sizes different")
+                    continue
 
         # not predict start symbol
         report_num_words_fr += (sent_len_fr - 1) * batch_size_fr
@@ -349,12 +352,16 @@ def main(args):
             report_kl_loss_fr = report_rec_loss_fr= report_kl_loss_en = report_rec_loss_en= report_loss_fr = report_loss_en = 0
             report_num_words_fr = report_num_words_en= report_num_sents_fr = report_num_sents_en=0
 
-            for i in np.random.permutation(len(train_data_batch_fr)):
+            for i in np.random.permutation(min(len(train_data_batch_fr), len(train_data_batch_en))):
 
-                batch_data_fr = test_data_batch_fr[i]
-                batch_data_en = test_data_batch_en[i]
+                batch_data_fr = train_data_batch_fr[i]
+                batch_data_en = train_data_batch_en[i]
                 batch_size_fr, sent_len_fr = batch_data_fr.size()
                 batch_size_en, sent_len_en = batch_data_en.size()
+
+                if (batch_size_fr!=batch_size_en):
+                    #print("batch sizes different")
+                    continue
 
                 # not predict start symbol
                 report_num_words_fr += (sent_len_fr - 1) * batch_size_fr
@@ -390,7 +397,7 @@ def main(args):
                     fake_loss_kl_en = (kl_mask_en * loss_kl_en).sum(dim=1)
                     loss_rc_en = vae.decoder.reconstruct_error(batch_data_en, z_en).mean(dim=1)
 
-                    loss = (loss_rc_fr + loss_rc_en + kl_weight * (fake_loss_kl_fr + fake_loss_kl_fr))/2 + torch.math.norm(z_fr-z_en)**2
+                    loss = (loss_rc_fr + loss_rc_en + kl_weight * (fake_loss_kl_fr + fake_loss_kl_fr))/2 + torch.norm(z_fr-z_en).item()**2
                 elif args.fb == 3:
                     loss, loss_rc_fr, loss_rc_en, loss_kl_fr, loss_kl_en = vae.loss_mullti(batch_data_fr, batch_data_en, kl_weight, nsamples=args.nsamples)
                     kl_mask_fr = (loss_kl_fr.mean() > args.target_kl).float()
