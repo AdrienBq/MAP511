@@ -117,11 +117,15 @@ def test(model, test_data_batch_fr, test_data_batch_en, mode, args, verbose=True
 
     report_kl_loss_fr = report_rec_loss_fr = report_loss_fr = report_kl_loss_en = report_rec_loss_en = report_loss_en = 0
     report_num_words_fr = report_num_sents_fr = report_num_words_en = report_num_sents_en = 0
-    for i in np.random.permutation(len(test_data_batch_fr)):
+    for i in np.random.permutation(min(len(test_data_batch_fr), len(test_data_batch_en))):
         batch_data_fr = test_data_batch_fr[i]
         batch_data_en = test_data_batch_en[i]
         batch_size_fr, sent_len_fr = batch_data_fr.size()
         batch_size_en, sent_len_en = batch_data_en.size()
+
+        if (batch_size_fr!=batch_size_en):
+            #print("batch sizes different")
+            continue
 
         # not predict start symbol
         report_num_words_fr += (sent_len_fr - 1) * batch_size_fr
@@ -145,9 +149,9 @@ def test(model, test_data_batch_fr, test_data_batch_en, mode, args, verbose=True
         loss_kl_en = loss_kl_en.sum()
         loss = loss.sum()
 
-        report_rec_loss_en += loss_rc_en.item()
-        report_kl_loss_en += loss_kl_en.item()
-        report_loss_en += loss.item()
+        report_rec_loss_fr += loss_rc_fr.item()
+        report_kl_loss_fr += loss_kl_fr.item()
+        report_loss_fr += loss.item()
         report_rec_loss_en += loss_rc_en.item()
         report_kl_loss_en += loss_kl_en.item()
         report_loss_en += loss.item()
@@ -335,7 +339,7 @@ def main(args):
             report_kl_loss_en = report_rec_loss_en = 0
             report_num_words_fr = report_num_words_en= report_num_sents_fr = report_num_sents_en=0
 
-            for i in np.random.permutation(len(train_data_batch_fr)):
+            for i in np.random.permutation(min(len(train_data_batch_fr), len(train_data_batch_en))):
 
                 batch_data_fr = train_data_batch_fr[i]
                 batch_data_en = train_data_batch_en[i]
@@ -344,8 +348,10 @@ def main(args):
                 batch_size_fr, sent_len_fr = batch_data_fr.size()
                 batch_size_en, sent_len_en = batch_data_en.size()
 
+
                 if (batch_size_fr!=batch_size_en):
-                    break
+                    #print("batch sizes different")
+                    continue
 
                 # not predict start symbol
                 report_num_words_fr += (sent_len_fr - 1) * batch_size_fr
