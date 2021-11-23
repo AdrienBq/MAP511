@@ -74,7 +74,7 @@ def text_to_spm(filename):
         sp_line = sp.encode(line, out_type =str)
         for word in sp_line[0][0:-1]:
             file.write(word)
-        #file.write('\n')
+        file.write('\n')
     file.close()
     
 
