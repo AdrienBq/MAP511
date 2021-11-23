@@ -2,6 +2,7 @@ import random
 import unicodedata
 import string
 import numpy as np
+import sentencepiece as spm
 
 all_letters = string.ascii_letters + " .,;'-?!_"
 
@@ -62,6 +63,21 @@ def process(filename):
         
     new_file.close()
 
+def text_to_spm(filename):
+    file = open(filename, 'r')
+    lines = file.readlines()
+    file.close()
+    sp = spm.SentencePieceProcessor(model_file = 'sp_model.model')
+
+    file = open(filename,'w')
+    for line in lines:
+        sp_line = sp.encode(line, out_type =str)
+        for word in sp_line[0][0:-1]:
+            file.write(word+' ')
+        file.write('\n')
+    file.close()
+    
+
 def split_test_train_valid(filename, n_train = 10000, n_test=10000, length = 50, n_valid = 10000 ):
     file  = open(filename, 'r')
     lines = file.readlines()
@@ -89,6 +105,8 @@ def split_test_train_valid(filename, n_train = 10000, n_test=10000, length = 50,
             test_file.write(lines[idx])
         idx+=1
     test_file.close()
+
+    
 
 def split_test_train_valid2(filename1, filename2, n_train = 10000, n_test=10000, length = 50, n_valid = 10000 ):
     file  = open(filename1, 'r')
@@ -154,6 +172,14 @@ def split_test_train_valid2(filename1, filename2, n_train = 10000, n_test=10000,
             test_file2.write(lines2[lst_idx[idx]])
         idx += 1
     test_file2.close()
+
+    text_to_spm('tatoeba.train.fr.txt')
+    text_to_spm('tatoeba.train.en.txt')
+    text_to_spm('tatoeba.test.fr.txt')
+    text_to_spm('tatoeba.test.en.txt')
+    text_to_spm('tatoeba.valid.fr.txt')
+    text_to_spm('tatoeba.valid.en.txt')
+    text_to_spm('tatoeba.train.txt')
 
 
 
