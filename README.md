@@ -1,6 +1,7 @@
 # Generation of multilingual text
 
 This is PyTorch implementation of a VAE for multilingual text generation.
+
 A detailed report of our work can be found in the file "rapport_MAP511".
 
 ## Requirements
@@ -12,8 +13,10 @@ A detailed report of our work can be found in the file "rapport_MAP511".
 ## Data
 
 3 datasets are presented in the folder "datasets". 
+
 The "tatoeba_data" dataset can be used to train a VAE using the method described here : https://github.com/bohanli/vae-pretraining-encoder
 The other two are processed to be used with our method.
+
 One can use another dataset and preprocees it with the file test.py
 
 ## Usage
