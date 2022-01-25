@@ -15,9 +15,10 @@ A detailed report of our work can be found in the file "rapport_EA_NLP.pdf".
 3 datasets are presented in the folder "datasets". 
 
 The "tatoeba_data" dataset can be used to train a VAE using the method described here : https://github.com/bohanli/vae-pretraining-encoder
+
 The other two are processed to be used with our method.
 
-One can use another dataset and preprocees it with the file test.py
+One can use another dataset and preprocess it with the file test.py
 
 ## Usage
 
