@@ -2,7 +2,7 @@
 
 This is PyTorch implementation of a VAE for multilingual text generation.
 
-A detailed report of our work can be found in the file "rapport_MAP511".
+A detailed report of our work can be found in the file "rapport_EA_NLP.pdf".
 
 ## Requirements
 
